@@ -359,6 +359,24 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         }
     }
 
+    protected buildDeviceTable(): void {
+        super.buildDeviceTable();
+        const nameEl = document.getElementById(`${this.elementId}_name`);
+        if (!nameEl || nameEl.querySelector('.restart-adb-button')) {
+            return;
+        }
+        const button = document.createElement('button');
+        button.className = 'action-button restart-adb-button active';
+        button.title = 'Restart ADB (refresh all devices)';
+        button.setAttribute(Attribute.COMMAND, ControlCenterCommand.RESTART_ADB);
+        button.onclick = this.onActionButtonClick;
+        button.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
+        const label = document.createElement('span');
+        label.innerText = 'Restart ADB';
+        button.appendChild(label);
+        nameEl.appendChild(button);
+    }
+
     protected getChannelCode(): string {
         return ChannelCode.GTRC;
     }

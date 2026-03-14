@@ -10,6 +10,7 @@ import { BaseControlCenter } from '../../services/BaseControlCenter';
 import { ControlCenterCommand } from '../../../common/ControlCenterCommand';
 import * as os from 'os';
 import * as crypto from 'crypto';
+import * as child_process from 'child_process';
 import { DeviceState } from '../../../common/DeviceState';
 
 export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor> implements Service {
@@ -155,14 +156,34 @@ export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor> imple
         this.stopTracker();
     }
 
+    private restartAdb(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            console.log('[ControlCenter] Restarting ADB server...');
+            const kill = child_process.spawn('adb', ['kill-server'], { stdio: 'ignore' });
+            kill.on('error', (e) => console.error('[ControlCenter] adb kill-server error:', e.message));
+            kill.on('close', () => {
+                const start = child_process.spawn('adb', ['start-server'], { stdio: 'ignore' });
+                start.on('error', (e) => console.error('[ControlCenter] adb start-server error:', e.message));
+                start.on('close', () => {
+                    console.log('[ControlCenter] ADB server restarted');
+                    resolve();
+                });
+            });
+        });
+    }
+
     public async runCommand(command: ControlCenterCommand): Promise<void> {
+        const type = command.getType();
+        if (type === ControlCenterCommand.RESTART_ADB) {
+            await this.restartAdb();
+            return;
+        }
         const udid = command.getUdid();
         const device = this.getDevice(udid);
         if (!device) {
             console.error(`Device with udid:"${udid}" not found`);
             return;
         }
-        const type = command.getType();
         switch (type) {
             case ControlCenterCommand.KILL_SERVER:
                 await device.killServer(command.getPid());
@@ -175,6 +196,9 @@ export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor> imple
                 return;
             case ControlCenterCommand.RESTART_DEVICE:
                 await device.restartDevice();
+                return;
+            case ControlCenterCommand.RESTART_ADB:
+                await this.restartAdb();
                 return;
             default:
                 throw new Error(`Unsupported command: "${type}"`);

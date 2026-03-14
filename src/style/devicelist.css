@@ -1,19 +1,34 @@
 :root {
-    --device-border-color: hsl(0, 0%, 82%);
-    --device-list-stripe-color: hsl(0, 0%, 96%);
-    --device-list-default-color: hsl(0, 0%, 100%);
-    --device-list-hover-color: hsl(218, 67%, 95%);
+    --device-border-color: hsl(0, 0%, 88%);
+    --device-card-bg: hsl(0, 0%, 100%);
+    --device-card-hover-bg: hsl(218, 67%, 97%);
+    --device-card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    --device-card-shadow-hover: 0 3px 12px rgba(0, 0, 0, 0.13);
+    --device-active-accent: hsl(145, 63%, 42%);
+    --device-inactive-accent: hsl(0, 72%, 51%);
+    --tracker-header-bg: hsl(220, 20%, 97%);
+    --action-btn-bg: hsl(0, 0%, 97%);
+    --action-btn-border: hsl(0, 0%, 85%);
+    --action-btn-hover-bg: hsl(218, 67%, 95%);
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --device-border-color: hsl(0, 0%, 32%);
-        --device-list-stripe-color: hsl(0, 0%, 16%);
-        --device-list-default-color: hsl(0, 0%, 14%);
-        --device-list-hover-color: hsl(218, 17%, 18%);
+        --device-border-color: hsl(0, 0%, 25%);
+        --device-card-bg: hsl(0, 0%, 17%);
+        --device-card-hover-bg: hsl(218, 17%, 21%);
+        --device-card-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        --device-card-shadow-hover: 0 3px 12px rgba(0, 0, 0, 0.4);
+        --device-active-accent: hsl(145, 55%, 38%);
+        --device-inactive-accent: hsl(0, 60%, 45%);
+        --tracker-header-bg: hsl(0, 0%, 13%);
+        --action-btn-bg: hsl(0, 0%, 22%);
+        --action-btn-border: hsl(0, 0%, 32%);
+        --action-btn-hover-bg: hsl(218, 17%, 26%);
     }
 }
 
+/* ── Page layout ────────────────────────────────────────── */
 
 body.list {
     height: auto;
@@ -22,15 +37,15 @@ body.list {
 }
 
 #devices {
-    padding: 20px 0;
+    padding: 12px;
     width: 100%;
-    height: calc(100% - 40px);
+    box-sizing: border-box;
     overflow-y: auto;
 }
 
 body.stream #devices {
-    background-color: var(--device-list-default-color);
-    opacity: .8;
+    background-color: var(--device-card-bg);
+    opacity: 0.92;
     position: absolute;
     top: 0;
     left: 0;
@@ -49,141 +64,240 @@ body.list #device_list_menu {
     z-index: 4;
 }
 
-#devices .device-list button {
+/* ── Device list container ─────────────────────────────── */
+
+#devices .device-list {
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: var(--font-size);
+}
+
+/* ── Tracker name header ───────────────────────────────── */
+
+#devices .tracker-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 4px 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    flex-wrap: wrap;
+}
+
+#devices .tracker-name .restart-adb-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--action-btn-border);
+    border-radius: 20px;
+    background: var(--action-btn-bg);
     color: var(--button-text-color);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
-#devices .device-list div.device:nth-child(2n+1){
-    background-color: var(--device-list-default-color);
+#devices .tracker-name .restart-adb-button svg {
+    width: 14px;
+    height: 14px;
+    fill: var(--button-text-color);
 }
 
-#devices .device-list div.device:nth-child(2n){
-    background-color: var(--device-list-stripe-color);
+#devices .tracker-name .restart-adb-button:hover,
+#devices .tracker-name .restart-adb-button:active {
+    background: var(--action-btn-hover-bg);
 }
+
+/* ── Device card ───────────────────────────────────────── */
+
+#devices .device-list div.device {
+    background: var(--device-card-bg);
+    border: 1px solid var(--device-border-color);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    padding: 14px 16px 12px;
+    box-shadow: var(--device-card-shadow);
+    transition: box-shadow 0.2s, background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#devices .device-list div.device:hover {
+    background: var(--device-card-hover-bg);
+    box-shadow: var(--device-card-shadow-hover);
+}
+
+/* ── Device header ─────────────────────────────────────── */
 
 #devices .device-header {
-    padding: 2px 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
 }
 
 #devices .device-header div {
     display: inline-flex;
+    align-items: center;
 }
 
 #devices .device-name {
-    font-size: 120%;
-}
-
-#devices .device-model {
-    font-size: 110%;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-color);
 }
 
 #devices .device-serial {
     color: var(--url-color);
-    font-size: 80%;
-    margin-left: 6px;
+    font-size: 0.75rem;
+    font-family: monospace;
+    background: hsl(0,0%,94%);
+    border-radius: 4px;
+    padding: 1px 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+    #devices .device-serial {
+        background: hsl(0,0%,22%);
+    }
 }
 
 #devices .device-version {
-    font-size: 100%;
-    margin-left: 6px;
+    font-size: 0.82rem;
     align-items: baseline;
+    gap: 4px;
+    color: var(--text-color-light);
 }
 
 #devices .device-version .sdk-version {
-    font-size: 75%;
+    font-size: 0.72rem;
     color: var(--url-color);
-    margin-left: 0.2em;
 }
 
+/* State dot */
 #devices .device-state {
-    border-radius: 25px;
-    background-color: red;
-    font-size: 80%;
-    margin-left: 6px;
-    width: 1em;
-    height: 1em;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--device-inactive-accent);
+    flex-shrink: 0;
 }
 
 #devices .device.active .device-state {
-    background-color: green;
+    background-color: var(--device-active-accent);
 }
 
-#devices .device-list {
-    position: relative;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-}
+/* ── Services / action row ─────────────────────────────── */
 
-#devices .device-list {
-    border-spacing: 0;
-    border-collapse: collapse;
-    font-family: monospace;
-    font-size: var(--font-size);
-}
-
-#devices .device-list div.device {
-    padding: 5px 20px 5px;
-}
-
-#devices .device-list div.device:hover {
-    background-color: var(--device-list-hover-color)
-}
-
-#devices .device-list div.device select {
-    color: var(--text-color);
-    background-color: var(--main-bg-color);
-    margin-left: 0;
-    border: none;
-}
-
-#devices .device-list div.device:hover select {
-    background-color: var(--device-list-hover-color);;
+#devices .device-list div.services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
 }
 
 #devices .device-list div.desc-block {
-    margin: .3em;
     display: inline-flex;
+    align-items: center;
 }
 
 #devices .device-list div.desc-block.hidden {
     display: none;
 }
 
+/* Bordered blocks (stream, pid, net interface) */
 #devices .device-list div.desc-block.stream,
 #devices .device-list div.desc-block.server_pid,
 #devices .device-list div.desc-block.net_interface {
-    border: 1px solid var(--device-border-color);
-    border-radius: .3em;
+    border: 1px solid var(--action-btn-border);
+    border-radius: 8px;
     overflow: hidden;
+    background: var(--action-btn-bg);
     white-space: nowrap;
 }
 
-#devices .device-list div.device div.desc-block.stream button.action-button {
+/* ── Action buttons ────────────────────────────────────── */
+
+#devices .device-list div.device div.desc-block .action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    min-width: 36px;
+    padding: 0 10px;
+    border: none;
+    background: transparent;
     color: var(--button-text-color);
+    fill: var(--text-color);
+    cursor: default;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
-#devices .device-list div.desc-block button {
-    fill: var(--text-color)
+#devices .device-list div.device div.desc-block .action-button.active {
+    cursor: pointer;
 }
 
-#devices .device-list div.desc-block button > span {
-    padding: 0 .5em;
+#devices .device-list .device.active div.desc-block .action-button.active:hover,
+#devices .device-list .device.active div.desc-block .action-button.active:active {
+    color: var(--kill-button-hover-color);
+    background: var(--action-btn-hover-bg);
 }
 
-#devices .device-list div.desc-block button > span,
+#devices .device-list .device.active div.desc-block button.action-button.active:hover > svg > path,
+#devices .device-list .device.active div.desc-block button.action-button.active:active > svg > path {
+    fill: var(--kill-button-hover-color);
+}
+
 #devices .device-list div.desc-block button > svg {
+    width: 1.1rem;
+    height: 1.1rem;
     vertical-align: middle;
-}
-
-#devices .device-list div.desc-block button > svg {
-    width: var(--font-size);
-    height: var(--font-size);
+    flex-shrink: 0;
 }
 
 #devices .device-list div.desc-block button > svg > path {
     fill: var(--text-color);
+}
+
+#devices .device-list div.desc-block button > span {
+    padding: 0 4px;
+    vertical-align: middle;
+    font-size: 0.82rem;
+}
+
+/* Restart device button */
+#devices .device-list div.restart-device {
+    border: 1px solid var(--action-btn-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--action-btn-bg);
+}
+
+/* ── Select (interface dropdown) ───────────────────────── */
+
+#devices .device-list div.device select {
+    color: var(--text-color);
+    background-color: transparent;
+    border: none;
+    font-size: 0.82rem;
+    padding: 0 4px;
+    height: 36px;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* ── Inactive devices ──────────────────────────────────── */
+
+#devices .device-list .device.not-active {
+    opacity: 0.6;
 }
 
 #devices .device-list .device.not-active div.desc-block button > svg > path {
@@ -191,10 +305,6 @@ body.list #device_list_menu {
 }
 
 #devices .device-list .device.not-active select {
-    color: var(--text-color-light);
-}
-
-#devices .device-list .device.not-active {
     color: var(--text-color-light);
 }
 
@@ -206,30 +316,35 @@ body.list #device_list_menu {
     color: var(--link-color_visited-light);
 }
 
-#devices .device-list div.device div.desc-block .action-button {
-    border: none;
-    background-color: rgba(0, 0, 0, 0);
-    color: inherit;
+/* ── Stream link ───────────────────────────────────────── */
+
+#devices .device-list div.device div.desc-block.stream button.action-button {
+    color: var(--button-text-color);
+    font-size: 0.82rem;
+    font-weight: 600;
 }
 
-#devices .device-list div.device div.desc-block .action-button.update-interfaces-button {
-    margin-right: 0;
+#devices .device-list div.device a {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border: 1px solid var(--action-btn-border);
+    border-radius: 8px;
+    background: var(--action-btn-bg);
+    font-size: 0.8rem;
+    text-decoration: none;
+    color: var(--link-color);
+    white-space: nowrap;
 }
 
-#devices .device-list div.device div.desc-block .action-button.active {
-    cursor: pointer;
+#devices .device-list div.device a:visited {
+    color: var(--link-color_visited);
 }
 
-#devices .device-list .device.active div.desc-block .action-button:hover {
-    color: var(--kill-button-hover-color);
-}
+/* ── Responsive: wider screens get 2-col cards ─────────── */
 
-#devices .device-list .device.active div.desc-block button.action-button:hover > svg > path {
-    fill: var(--kill-button-hover-color);
-}
-
-#devices .tracker-name {
-    padding: 5px 20px 5px;
-    font-size: larger;
-    font-weight: bolder;
+@media (min-width: 700px) {
+    #devices {
+        padding: 16px 24px;
+    }
 }
