@@ -5,6 +5,7 @@ export class ControlCenterCommand {
     public static START_SERVER = 'start_server';
     public static UPDATE_INTERFACES = 'update_interfaces';
     public static CONFIGURE_STREAM = 'configure_stream';
+    public static RESTART_DEVICE = 'restart_device';
     public static RUN_WDA = 'run-wda';
     public static REQUEST_WDA = 'request-wda';
 
@@ -47,6 +48,7 @@ export class ControlCenterCommand {
             case this.UPDATE_INTERFACES:
             case this.CONFIGURE_STREAM:
             case this.RUN_WDA:
+            case this.RESTART_DEVICE:
                 return command;
             default:
                 throw new Error(`Unknown command "${body.command}"`);

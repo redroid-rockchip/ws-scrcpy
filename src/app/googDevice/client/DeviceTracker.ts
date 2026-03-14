@@ -211,6 +211,20 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         const streamEntry = StreamClientScrcpy.createEntryForDeviceList(device, blockClass, fullName, this.params);
         streamEntry && services.appendChild(streamEntry);
 
+        if (isActive) {
+            const restartBlock = document.createElement('div');
+            restartBlock.classList.add('restart-device', blockClass);
+            const restartButton = document.createElement('button');
+            restartButton.className = 'action-button restart-device-button active';
+            restartButton.title = 'Restart device';
+            restartButton.setAttribute(Attribute.UDID, device.udid);
+            restartButton.setAttribute(Attribute.COMMAND, ControlCenterCommand.RESTART_DEVICE);
+            restartButton.onclick = this.onActionButtonClick;
+            restartButton.appendChild(SvgImage.create(SvgImage.Icon.POWER));
+            restartBlock.appendChild(restartButton);
+            services.appendChild(restartBlock);
+        }
+
         DESC_COLUMNS.forEach((item) => {
             const { title } = item;
             const fieldName = item.field;

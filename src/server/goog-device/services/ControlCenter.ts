@@ -173,6 +173,9 @@ export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor> imple
             case ControlCenterCommand.UPDATE_INTERFACES:
                 await device.updateInterfaces();
                 return;
+            case ControlCenterCommand.RESTART_DEVICE:
+                await device.restartDevice();
+                return;
             default:
                 throw new Error(`Unsupported command: "${type}"`);
         }
