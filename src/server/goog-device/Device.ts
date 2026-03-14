@@ -8,6 +8,7 @@ import GoogDeviceDescriptor from '../../types/GoogDeviceDescriptor';
 import { ScrcpyServer } from './ScrcpyServer';
 import { Properties } from './Properties';
 import { EnvName } from '../EnvName';
+import Docker from 'dockerode';
 import Timeout = NodeJS.Timeout;
 
 enum PID_DETECTION {
@@ -447,25 +448,29 @@ export class Device extends TypedEmitter<DeviceEvents> {
         }
     }
 
+    private static getDockerOptions(dockerHost?: string): Docker.DockerOptions {
+        if (!dockerHost) {
+            return { socketPath: '/var/run/docker.sock' };
+        }
+        const url = new URL(dockerHost);
+        if (url.protocol === 'unix:') {
+            return { socketPath: url.pathname };
+        }
+        return {
+            host: url.hostname,
+            port: parseInt(url.port, 10) || 2375,
+            protocol: (url.protocol === 'https:' ? 'https' : 'http') as 'https' | 'http',
+        };
+    }
+
     public async restartDevice(): Promise<void> {
         const containerName = this.descriptor['ro.boot.container_name'];
         if (containerName) {
             const dockerHost = process.env[EnvName.DOCKER_HOST];
-            const args = dockerHost ? ['-H', dockerHost, 'restart', containerName] : ['restart', containerName];
-            console.log(this.TAG, `Restarting redroid container: docker ${args.join(' ')}`);
-            await new Promise<void>((resolve, reject) => {
-                const proc = spawn('docker', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-                proc.stdout.on('data', (data) => console.log(this.TAG, `docker stdout: ${data.toString().trim()}`));
-                proc.stderr.on('data', (data) => console.error(this.TAG, `docker stderr: ${data.toString().trim()}`));
-                proc.on('error', reject);
-                proc.on('close', (code) => {
-                    if (code === 0) {
-                        resolve();
-                    } else {
-                        reject(new Error(`docker restart exited with code ${code}`));
-                    }
-                });
-            });
+            console.log(this.TAG, `Restarting redroid container "${containerName}" via Docker API (host: ${dockerHost || 'unix socket'})`);
+            const docker = new Docker(Device.getDockerOptions(dockerHost));
+            const container = docker.getContainer(containerName);
+            await container.restart();
         } else {
             console.log(this.TAG, `Restarting device via adb reboot`);
             await this.runShellCommandAdbKit('reboot');
