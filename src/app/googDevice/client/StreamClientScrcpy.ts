@@ -60,6 +60,7 @@ export class StreamClientScrcpy
     private filePushHandler?: FilePushHandler;
     private fitToScreen?: boolean;
     private readonly streamReceiver: StreamReceiverScrcpy;
+    private resizeDebounceId?: ReturnType<typeof setTimeout>;
 
     public static registerPlayer(playerClass: PlayerClass): void {
         if (playerClass.isSupported()) {
@@ -254,6 +255,11 @@ export class StreamClientScrcpy
         this.streamReceiver.off('clientsStats', this.onClientsStats);
         this.streamReceiver.off('displayInfo', this.onDisplayInfo);
         this.streamReceiver.off('disconnected', this.onDisconnected);
+        window.removeEventListener('resize', this.onWindowResize);
+        if (this.resizeDebounceId !== undefined) {
+            clearTimeout(this.resizeDebounceId);
+            this.resizeDebounceId = undefined;
+        }
 
         this.filePushHandler?.release();
         this.filePushHandler = undefined;
@@ -344,6 +350,7 @@ export class StreamClientScrcpy
         streamReceiver.on('clientsStats', this.onClientsStats);
         streamReceiver.on('displayInfo', this.onDisplayInfo);
         streamReceiver.on('disconnected', this.onDisconnected);
+        window.addEventListener('resize', this.onWindowResize);
         console.log(TAG, player.getName(), udid);
     }
 
@@ -389,6 +396,31 @@ export class StreamClientScrcpy
         const height = body.clientHeight & ~15;
         return new Size(width, height);
     }
+
+    private onWindowResize = (): void => {
+        if (!this.fitToScreen || !this.player) {
+            return;
+        }
+        if (this.resizeDebounceId !== undefined) {
+            clearTimeout(this.resizeDebounceId);
+        }
+        this.resizeDebounceId = setTimeout(() => {
+            this.resizeDebounceId = undefined;
+            if (!this.player) {
+                return;
+            }
+            const newBounds = this.getMaxSize();
+            if (!newBounds) {
+                return;
+            }
+            const newSettings = StreamClientScrcpy.createVideoSettingsWithBounds(
+                this.player.getVideoSettings(),
+                newBounds,
+            );
+            this.player.setVideoSettings(newSettings, true, false);
+            this.sendNewVideoSetting(newSettings);
+        }, 300);
+    };
 
     private setTouchListeners(player: BasePlayer): void {
         if (this.touchHandler) {
