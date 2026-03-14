@@ -482,7 +482,7 @@ export abstract class InteractionHandler {
                     if (action === MotionEvent.ACTION_UP) {
                         pressure = 0;
                     } else if (typeof touch.force === 'number') {
-                        pressure = touch.force;
+                        pressure = Math.min(1, Math.max(0, touch.force));
                     }
                     if (!invalid) {
                         const message = new TouchControlMessage(action, pointerId, position, pressure, buttons);
