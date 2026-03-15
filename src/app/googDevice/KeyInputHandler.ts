@@ -9,6 +9,9 @@ export interface KeyEventListener {
 export class KeyInputHandler {
     private static readonly repeatCounter: Map<number, number> = new Map();
     private static readonly listeners: Set<KeyEventListener> = new Set();
+    private static mobileInput: HTMLInputElement | null = null;
+    private static mobileInputBlurHandler: (() => void) | null = null;
+    private static readonly isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     private static handler = (event: Event): void => {
         const keyboardEvent = event as KeyboardEvent;
         const keyCode = KeyToCodeMap.get(keyboardEvent.code);
@@ -58,10 +61,49 @@ export class KeyInputHandler {
     private static attachListeners(): void {
         document.body.addEventListener('keydown', this.handler);
         document.body.addEventListener('keyup', this.handler);
+        if (this.isTouchDevice) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.autocomplete = 'off';
+            Object.assign(input.style, {
+                position: 'fixed',
+                opacity: '0',
+                width: '1px',
+                height: '1px',
+                top: '0',
+                left: '0',
+                border: 'none',
+                outline: 'none',
+                zIndex: '-1',
+                pointerEvents: 'none',
+            });
+            document.body.appendChild(input);
+            this.mobileInput = input;
+            const blurHandler = () => {
+                // Re-focus after a short delay so touch interactions on the canvas don't close the keyboard
+                setTimeout(() => {
+                    if (this.mobileInput) {
+                        this.mobileInput.focus();
+                    }
+                }, 100);
+            };
+            input.addEventListener('blur', blurHandler);
+            this.mobileInputBlurHandler = blurHandler;
+            input.focus();
+        }
     }
     private static detachListeners(): void {
         document.body.removeEventListener('keydown', this.handler);
         document.body.removeEventListener('keyup', this.handler);
+        if (this.mobileInput) {
+            if (this.mobileInputBlurHandler) {
+                this.mobileInput.removeEventListener('blur', this.mobileInputBlurHandler);
+                this.mobileInputBlurHandler = null;
+            }
+            this.mobileInput.blur();
+            this.mobileInput.remove();
+            this.mobileInput = null;
+        }
     }
     public static addEventListener(listener: KeyEventListener): void {
         if (!this.listeners.size) {
