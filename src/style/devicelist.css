@@ -332,26 +332,57 @@ body.list #device_list_menu {
     appearance: none;
 }
 
-/* ── Direct stream link (accent colored) ───────────────── */
+/* ── Direct stream block (player select + Stream link) ─── */
 
-#devices .device-list div.device div.direct-stream a {
-    background: var(--stream-btn-bg);
-    color: var(--stream-btn-color);
-    border-color: transparent;
-    font-weight: 600;
-    font-size: 0.82rem;
-    padding: 6px 14px;
+#devices .device-list div.device div.direct-stream {
+    border: 1px solid var(--action-btn-border);
     border-radius: 8px;
-    text-decoration: none;
+    overflow: hidden;
+    background: var(--action-btn-bg);
     display: inline-flex;
     align-items: center;
     white-space: nowrap;
+}
+
+#devices .device-list div.device div.direct-stream select {
+    border: none;
+    border-right: 1px solid var(--action-btn-border);
+    height: 36px;
+    padding: 0 6px;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    max-width: 130px;
+}
+
+#devices .device-list div.device div.direct-stream .player-link {
+    display: inline-flex;
+    align-items: center;
+}
+
+#devices .device-list div.device div.direct-stream .player-link a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 14px;
+    height: 36px;
+    background: var(--stream-btn-bg);
+    color: var(--stream-btn-color) !important;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    border: none;
+    border-radius: 0;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
 
-#devices .device-list div.device div.direct-stream a:hover,
-#devices .device-list div.device div.direct-stream a:active {
+#devices .device-list div.device div.direct-stream .player-link a:hover,
+#devices .device-list div.device div.direct-stream .player-link a:active {
     background: var(--stream-btn-hover-bg);
 }
 
@@ -384,9 +415,8 @@ body.list #device_list_menu {
     background: transparent;
 }
 
-/* Links outside btn-group get individual pill style */
-#devices .stream-section div.desc-block a,
-#devices .device-list div.device > .services > a {
+/* Links inside stream-section that are NOT in direct-stream get pill style */
+#devices .stream-section div.desc-block:not(.direct-stream) a {
     border: 1px solid var(--action-btn-border);
     border-radius: 8px;
     background: var(--action-btn-bg);

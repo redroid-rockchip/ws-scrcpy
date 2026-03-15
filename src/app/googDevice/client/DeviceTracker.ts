@@ -288,30 +288,75 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         const streamEntry = StreamClientScrcpy.createEntryForDeviceList(device, blockClass, fullName, this.params);
         streamEntry && streamSection.appendChild(streamEntry);
 
-        // Single direct stream link using last-saved player
+        // Player select + direct stream link (dropdown + accent button)
         if (DeviceTracker.CREATE_DIRECT_LINKS && hasPid) {
-            const escapedUdid = Util.escapeUdid(device.udid);
-            const playerStorageKey = `configure_stream::${escapedUdid}::player`;
-            const lastPlayerFullName = localStorage && localStorage.getItem(playerStorageKey);
             const players = StreamClientScrcpy.getPlayers();
-            let selectedPlayer = players[0];
-            if (lastPlayerFullName) {
-                const found = players.find((p) => p.playerFullName === lastPlayerFullName);
-                if (found) {
-                    selectedPlayer = found;
-                }
-            }
-            if (selectedPlayer) {
-                const name = `${DeviceTracker.AttributePrefixPlayerFor}${fullName}`;
+            if (players.length) {
+                const escapedUdid = Util.escapeUdid(device.udid);
+                const playerStorageKey = `configure_stream::${escapedUdid}::player`;
+                const lastPlayerFullName = localStorage && localStorage.getItem(playerStorageKey);
+
+                const streamBlock = document.createElement('div');
+                streamBlock.classList.add(blockClass, 'direct-stream');
+
+                // Player dropdown
+                const playerSelect = document.createElement('select');
+                playerSelect.title = 'Select player';
+                let defaultIndex = 0;
+                players.forEach((playerClass, index) => {
+                    const option = document.createElement('option');
+                    option.value = playerClass.playerCodeName;
+                    option.innerText = playerClass.playerFullName;
+                    playerSelect.appendChild(option);
+                    if (playerClass.playerFullName === lastPlayerFullName) {
+                        defaultIndex = index;
+                    }
+                });
+                playerSelect.selectedIndex = defaultIndex;
+                streamBlock.appendChild(playerSelect);
+
+                // Link container updated by updateLink()
+                const linkName = `${DeviceTracker.AttributePrefixPlayerFor}${fullName}`;
                 const playerTd = document.createElement('div');
-                playerTd.classList.add(blockClass, 'direct-stream');
-                playerTd.setAttribute('name', encodeURIComponent(name));
+                playerTd.classList.add('player-link');
+                playerTd.setAttribute('name', encodeURIComponent(linkName));
                 playerTd.setAttribute(DeviceTracker.AttributePlayerFullName, encodeURIComponent('Stream'));
                 playerTd.setAttribute(
                     DeviceTracker.AttributePlayerCodeName,
-                    encodeURIComponent(selectedPlayer.playerCodeName),
+                    encodeURIComponent(players[defaultIndex].playerCodeName),
                 );
-                streamSection.appendChild(playerTd);
+                streamBlock.appendChild(playerTd);
+
+                // When player changes: update playerTd, persist, re-render link
+                playerSelect.onchange = () => {
+                    const chosen = players[playerSelect.selectedIndex];
+                    if (!chosen) {
+                        return;
+                    }
+                    playerTd.setAttribute(
+                        DeviceTracker.AttributePlayerCodeName,
+                        encodeURIComponent(chosen.playerCodeName),
+                    );
+                    if (localStorage) {
+                        localStorage.setItem(playerStorageKey, chosen.playerFullName);
+                    }
+                    // Find current interface URL from the interface select for this device
+                    const ifaceSelectName = encodeURIComponent(
+                        `${DeviceTracker.AttributePrefixInterfaceSelectFor}${fullName}`,
+                    );
+                    const ifaceSelect = document.querySelector<HTMLSelectElement>(
+                        `select[name="${ifaceSelectName}"]`,
+                    );
+                    const url =
+                        ifaceSelect?.selectedOptions[0]?.getAttribute(Attribute.URL) || selectedInterfaceUrl;
+                    const iface =
+                        ifaceSelect?.selectedOptions[0]?.getAttribute(Attribute.NAME) || selectedInterfaceName;
+                    if (url) {
+                        this.updateLink({ url, name: iface, fullName, udid: device.udid, store: false });
+                    }
+                };
+
+                streamSection.appendChild(streamBlock);
             }
         }
 
@@ -339,7 +384,9 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             restartButton.setAttribute(Attribute.UDID, device.udid);
             restartButton.setAttribute(Attribute.COMMAND, ControlCenterCommand.RESTART_DEVICE);
             restartButton.onclick = this.onActionButtonClick;
-            restartButton.appendChild(SvgImage.create(SvgImage.Icon.POWER));
+            const restartLabel = document.createElement('span');
+            restartLabel.innerText = 'restart';
+            restartButton.appendChild(restartLabel);
             restartBlock.appendChild(restartButton);
             toolsEntries.push(restartBlock);
         }
