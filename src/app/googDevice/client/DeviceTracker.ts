@@ -185,7 +185,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         const pidValue = '' + device['pid'];
         const hasPid = pidValue !== '-1';
 
-        // Build utility blocks (pid + iface) — appended after direct-stream
+        // PID control button (cancel/start/offline)
         const pidBlock = document.createElement('div');
         {
             pidBlock.classList.add('server_pid', blockClass);
@@ -220,7 +220,9 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             pidBlock.appendChild(actionButton);
         }
 
-        // Net interface (hidden in single-interface mode)
+        // Net interface select (hidden in single-interface mode) + update-interfaces button
+        // The refresh button is extracted separately for the stream pill.
+        let updateIfaceButton: HTMLButtonElement | null = null;
         const ifaceBlock = document.createElement('div');
         {
             ifaceBlock.classList.add('net_interface', blockClass);
@@ -270,23 +272,21 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                     selectedInterfaceName = proxyInterfaceName;
                 }
                 selectElement.appendChild(adbProxyOption);
-                const actionButton = document.createElement('button');
-                actionButton.className = 'action-button update-interfaces-button active';
-                actionButton.title = 'Update information';
-                actionButton.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
-                actionButton.setAttribute(Attribute.UDID, device.udid);
-                actionButton.setAttribute(Attribute.COMMAND, ControlCenterCommand.UPDATE_INTERFACES);
-                actionButton.onclick = this.onActionButtonClick;
-                ifaceBlock.appendChild(actionButton);
+                // Create the refresh button — will be placed in the stream pill
+                const btn = document.createElement('button');
+                btn.className = 'action-button update-interfaces-button active';
+                btn.title = 'Update interfaces';
+                btn.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
+                btn.setAttribute(Attribute.UDID, device.udid);
+                btn.setAttribute(Attribute.COMMAND, ControlCenterCommand.UPDATE_INTERFACES);
+                btn.onclick = this.onActionButtonClick;
+                updateIfaceButton = btn;
             }
             selectElement.onchange = this.onInterfaceSelected;
             ifaceBlock.appendChild(selectElement);
         }
 
-        // Configure stream button
-        const streamEntry = StreamClientScrcpy.createEntryForDeviceList(device, blockClass, fullName, this.params);
-
-        // Player select + direct stream link (first in DOM for mobile prominence)
+        // ── Stream pill: [Stream link][player▼][⚙ configure][🔄 update iface][✕ pid] ──
         if (DeviceTracker.CREATE_DIRECT_LINKS && hasPid) {
             const players = StreamClientScrcpy.getPlayers();
             if (players.length) {
@@ -294,26 +294,17 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 const playerStorageKey = `configure_stream::${escapedUdid}::player`;
                 const lastPlayerFullName = localStorage && localStorage.getItem(playerStorageKey);
 
-                const streamBlock = document.createElement('div');
-                streamBlock.classList.add(blockClass, 'direct-stream');
-
-                // Player dropdown
-                const playerSelect = document.createElement('select');
-                playerSelect.title = 'Select player';
                 let defaultIndex = 0;
                 players.forEach((playerClass, index) => {
-                    const option = document.createElement('option');
-                    option.value = playerClass.playerCodeName;
-                    option.innerText = playerClass.playerFullName;
-                    playerSelect.appendChild(option);
                     if (playerClass.playerFullName === lastPlayerFullName) {
                         defaultIndex = index;
                     }
                 });
-                playerSelect.selectedIndex = defaultIndex;
-                streamBlock.appendChild(playerSelect);
 
-                // Link container updated by updateLink()
+                const streamPill = document.createElement('div');
+                streamPill.className = 'stream-pill';
+
+                // 1. Stream link (filled by updateLink after append)
                 const linkName = `${DeviceTracker.AttributePrefixPlayerFor}${fullName}`;
                 const playerTd = document.createElement('div');
                 playerTd.classList.add('player-link');
@@ -323,9 +314,21 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                     DeviceTracker.AttributePlayerCodeName,
                     encodeURIComponent(players[defaultIndex].playerCodeName),
                 );
-                streamBlock.appendChild(playerTd);
+                streamPill.appendChild(playerTd);
 
-                // When player changes: update playerTd, persist, re-render link
+                // 2. Player select dropdown
+                const playerSelect = document.createElement('select');
+                playerSelect.className = 'pill-player-select';
+                playerSelect.title = 'Select player';
+                players.forEach((playerClass) => {
+                    const option = document.createElement('option');
+                    option.value = playerClass.playerCodeName;
+                    option.innerText = playerClass.playerFullName;
+                    playerSelect.appendChild(option);
+                });
+                playerSelect.selectedIndex = defaultIndex;
+                streamPill.appendChild(playerSelect);
+
                 playerSelect.onchange = () => {
                     const chosen = players[playerSelect.selectedIndex];
                     if (!chosen) {
@@ -338,34 +341,65 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                     if (localStorage) {
                         localStorage.setItem(playerStorageKey, chosen.playerFullName);
                     }
-                    // Find current interface URL from the interface select for this device
-                    const ifaceSelectName = encodeURIComponent(
-                        `${DeviceTracker.AttributePrefixInterfaceSelectFor}${fullName}`,
-                    );
-                    const ifaceSelect = document.querySelector<HTMLSelectElement>(
-                        `select[name="${ifaceSelectName}"]`,
-                    );
-                    const url =
-                        ifaceSelect?.selectedOptions[0]?.getAttribute(Attribute.URL) || selectedInterfaceUrl;
-                    const iface =
-                        ifaceSelect?.selectedOptions[0]?.getAttribute(Attribute.NAME) || selectedInterfaceName;
-                    if (url) {
-                        this.updateLink({ url, name: iface, fullName, udid: device.udid, store: false });
+                    if (selectedInterfaceUrl) {
+                        this.updateLink({
+                            url: selectedInterfaceUrl,
+                            name: selectedInterfaceName,
+                            fullName,
+                            udid: device.udid,
+                            store: false,
+                        });
                     }
                 };
 
-                streamSection.appendChild(streamBlock);
+                // 3. Configure stream (settings icon, icon-only)
+                const streamEntry = StreamClientScrcpy.createEntryForDeviceList(
+                    device,
+                    blockClass,
+                    fullName,
+                    this.params,
+                );
+                if (streamEntry) {
+                    const configBtn = (streamEntry as DocumentFragment).querySelector('button');
+                    if (configBtn) {
+                        configBtn.innerHTML = '';
+                        configBtn.title = 'Configure stream';
+                        configBtn.appendChild(SvgImage.create(SvgImage.Icon.SETTINGS));
+                    }
+                    streamPill.appendChild(streamEntry);
+                }
+
+                // 4. Update interfaces button (refresh icon, active devices only)
+                if (updateIfaceButton) {
+                    const updateBlock = document.createElement('div');
+                    updateBlock.classList.add('update-iface', blockClass);
+                    updateBlock.appendChild(updateIfaceButton);
+                    streamPill.appendChild(updateBlock);
+                }
+
+                // 5. PID control (rightmost icon)
+                streamPill.appendChild(pidBlock);
+
+                streamSection.appendChild(streamPill);
             }
+        } else {
+            // No active stream: minimal pill with just pid status
+            const pill = document.createElement('div');
+            pill.className = 'stream-pill';
+            if (updateIfaceButton) {
+                const updateBlock = document.createElement('div');
+                updateBlock.classList.add('update-iface', blockClass);
+                updateBlock.appendChild(updateIfaceButton);
+                pill.appendChild(updateBlock);
+            }
+            pill.appendChild(pidBlock);
+            streamSection.appendChild(pill);
         }
 
-        // Append utility items after the primary stream block
-        streamSection.appendChild(pidBlock);
         streamSection.appendChild(ifaceBlock);
-        streamEntry && streamSection.appendChild(streamEntry);
-
         services.appendChild(streamSection);
 
-        // ── Dev tools section (active devices only) ────────────────────
+        // ── Dev tools section ──────────────────────────────────────────
         const toolsEntries: (HTMLElement | DocumentFragment)[] = [];
         DeviceTracker.tools.forEach((tool) => {
             const entry = tool.createEntryForDeviceList(device, blockClass, this.params);
@@ -387,6 +421,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             restartButton.setAttribute(Attribute.UDID, device.udid);
             restartButton.setAttribute(Attribute.COMMAND, ControlCenterCommand.RESTART_DEVICE);
             restartButton.onclick = this.onActionButtonClick;
+            restartButton.appendChild(SvgImage.create(SvgImage.Icon.POWER));
             const restartLabel = document.createElement('span');
             restartLabel.innerText = 'reboot';
             restartButton.appendChild(restartLabel);
@@ -424,22 +459,14 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             return (a, b) => {
                 const aScore = a.state === DeviceState.DEVICE ? 0 : 1;
                 const bScore = b.state === DeviceState.DEVICE ? 0 : 1;
-                return aScore - bScore;
+                return aScore - bScore || a.udid.localeCompare(b.udid);
             };
         }
-        if (sortBy === 'name-asc') {
-            return (a, b) => {
-                const aName = `${a['ro.product.manufacturer']} ${a['ro.product.model']}`.toLowerCase();
-                const bName = `${b['ro.product.manufacturer']} ${b['ro.product.model']}`.toLowerCase();
-                return aName.localeCompare(bName);
-            };
+        if (sortBy === 'serial-asc') {
+            return (a, b) => a.udid.localeCompare(b.udid);
         }
-        if (sortBy === 'name-desc') {
-            return (a, b) => {
-                const aName = `${a['ro.product.manufacturer']} ${a['ro.product.model']}`.toLowerCase();
-                const bName = `${b['ro.product.manufacturer']} ${b['ro.product.model']}`.toLowerCase();
-                return bName.localeCompare(aName);
-            };
+        if (sortBy === 'serial-desc') {
+            return (a, b) => b.udid.localeCompare(a.udid);
         }
         return null;
     }
@@ -466,8 +493,8 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         const sortOptions: { value: string; label: string }[] = [
             { value: 'default', label: 'Default order' },
             { value: 'active-first', label: 'Active first' },
-            { value: 'name-asc', label: 'Name A→Z' },
-            { value: 'name-desc', label: 'Name Z→A' },
+            { value: 'serial-asc', label: 'Serial A→Z' },
+            { value: 'serial-desc', label: 'Serial Z→A' },
         ];
         sortOptions.forEach(({ value, label }) => {
             const option = document.createElement('option');
@@ -476,14 +503,12 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             option.selected = value === currentSort;
             sortSelect.appendChild(option);
         });
-        // Use change event listener; read value before buildDeviceTable() detaches the element
         sortSelect.addEventListener('change', (e: Event) => {
             const val = (e.currentTarget as HTMLSelectElement).value;
             if (localStorage) {
                 localStorage.setItem(DeviceTracker.SORT_KEY, val);
             }
-            // Defer DOM rebuild so the change event fully completes first
-            setTimeout(() => this.buildDeviceTable(), 0);
+            this.buildDeviceTable();
         });
         nameEl.appendChild(sortSelect);
 

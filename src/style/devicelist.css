@@ -248,9 +248,7 @@ body.list #device_list_menu {
     display: none;
 }
 
-/* Bordered standalone blocks (stream, pid, net interface) */
-#devices .device-list div.desc-block.stream,
-#devices .device-list div.desc-block.server_pid,
+/* Bordered standalone blocks (net interface only; pid/stream are inside stream-pill) */
 #devices .device-list div.desc-block.net_interface {
     border: 1px solid var(--action-btn-border);
     border-radius: 8px;
@@ -350,9 +348,9 @@ body.list #device_list_menu {
     appearance: none;
 }
 
-/* ── Direct stream block (player select + Stream link) ─── */
+/* ── Stream pill: [Stream][player▼][⚙][⏻][✕] in one row ─── */
 
-#devices .device-list div.device div.direct-stream {
+#devices .device-list div.device div.stream-pill {
     border: 1px solid var(--action-btn-border);
     border-radius: 8px;
     overflow: hidden;
@@ -362,27 +360,25 @@ body.list #device_list_menu {
     white-space: nowrap;
 }
 
-#devices .device-list div.device div.direct-stream select {
-    border: none;
-    border-right: 1px solid var(--action-btn-border);
-    height: 36px;
-    padding: 0 6px;
-    background: transparent;
-    color: var(--text-color);
-    font-size: 0.8rem;
-    cursor: pointer;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    max-width: 130px;
+/* Divider between adjacent pill children */
+#devices .device-list div.device div.stream-pill > * + * {
+    border-left: 1px solid var(--action-btn-border);
 }
 
-#devices .device-list div.device div.direct-stream .player-link {
+/* desc-block items inside pill inherit pill bg, no own border */
+#devices .device-list div.device div.stream-pill .desc-block {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+/* Stream link (filled by updateLink) */
+#devices .device-list div.device div.stream-pill .player-link {
     display: inline-flex;
     align-items: center;
 }
 
-#devices .device-list div.device div.direct-stream .player-link a {
+#devices .device-list div.device div.stream-pill .player-link a {
     display: inline-flex;
     align-items: center;
     padding: 0 14px;
@@ -399,9 +395,24 @@ body.list #device_list_menu {
     touch-action: manipulation;
 }
 
-#devices .device-list div.device div.direct-stream .player-link a:hover,
-#devices .device-list div.device div.direct-stream .player-link a:active {
+#devices .device-list div.device div.stream-pill .player-link a:hover,
+#devices .device-list div.device div.stream-pill .player-link a:active {
     background: var(--stream-btn-hover-bg);
+}
+
+/* Player dropdown inside pill */
+#devices .device-list div.device div.stream-pill .pill-player-select {
+    border: none;
+    height: 36px;
+    padding: 0 6px;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    max-width: 120px;
 }
 
 /* ── Stream action button ──────────────────────────────── */
@@ -433,12 +444,7 @@ body.list #device_list_menu {
     background: transparent;
 }
 
-/* Links inside stream-section that are NOT in direct-stream get pill style */
-#devices .stream-section div.desc-block:not(.direct-stream) a {
-    border: 1px solid var(--action-btn-border);
-    border-radius: 8px;
-    background: var(--action-btn-bg);
-}
+
 
 #devices .device-list div.device a:visited {
     color: var(--link-color_visited);
@@ -474,29 +480,29 @@ body.list #device_list_menu {
     }
 }
 
-/* ── Mobile: stream section full-width stream block ─────── */
+/* ── Mobile: stream pill full-width ─────────────────────── */
 
 @media (max-width: 520px) {
-    /* Stream block spans full width so it's always on its own row */
-    #devices .device-list div.device div.direct-stream {
+    /* Stream pill spans full width so it's always on its own row */
+    #devices .device-list div.device div.stream-pill {
         width: 100%;
         box-sizing: border-box;
     }
 
-    /* Player name select expands to fill available space */
-    #devices .device-list div.device div.direct-stream select {
+    /* Stream link fills remaining space */
+    #devices .device-list div.device div.stream-pill .player-link {
+        flex: 1;
+        justify-content: center;
+    }
+
+    #devices .device-list div.device div.stream-pill .player-link a {
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* Player select expands on mobile */
+    #devices .device-list div.device div.stream-pill .pill-player-select {
         flex: 1;
         max-width: none;
-    }
-
-    /* Stream link fills remaining width */
-    #devices .device-list div.device div.direct-stream .player-link {
-        flex: 1;
-        justify-content: center;
-    }
-
-    #devices .device-list div.device div.direct-stream .player-link a {
-        flex: 1;
-        justify-content: center;
     }
 }
