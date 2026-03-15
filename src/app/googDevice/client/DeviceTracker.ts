@@ -236,13 +236,6 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 'name',
                 encodeURIComponent(`${DeviceTracker.AttributePrefixInterfaceSelectFor}${fullName}`),
             );
-            Object.assign(selectElement.style, {
-                position: 'absolute',
-                opacity: '0',
-                pointerEvents: 'none',
-                width: '1px',
-                height: '1px',
-            });
             /// #if SCRCPY_LISTENS_ON_ALL_INTERFACES
             device.interfaces.forEach((value) => {
                 const params = {
@@ -280,15 +273,10 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 const btn = document.createElement('button');
                 btn.className = 'action-button update-interfaces-button active';
                 btn.title = 'Update interfaces';
-                btn.appendChild(SvgImage.create(SvgImage.Icon.MORE));
+                btn.appendChild(SvgImage.create(SvgImage.Icon.MENU));
                 btn.setAttribute(Attribute.UDID, device.udid);
                 btn.setAttribute(Attribute.COMMAND, ControlCenterCommand.UPDATE_INTERFACES);
-                btn.onclick = (e) => {
-                    this.onActionButtonClick(e);
-                    if ('showPicker' in selectElement) {
-                        (selectElement as any).showPicker();
-                    }
-                };
+                btn.style.pointerEvents = 'none'; // select overlay handles interaction
                 updateIfaceButton = btn;
             }
             selectElement.onchange = this.onInterfaceSelected;
@@ -378,11 +366,24 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                     streamPill.appendChild(streamEntry);
                 }
 
-                // 4. Update interfaces button (refresh icon, active devices only)
-                if (updateIfaceButton) {
+                // 4. Update interfaces button (active devices only)
+                if (updateIfaceButton && ifaceSelectElement) {
                     const updateBlock = document.createElement('div');
                     updateBlock.classList.add('update-iface', blockClass);
+                    updateBlock.style.position = 'relative';
                     updateBlock.appendChild(updateIfaceButton);
+                    // Overlay invisible select over button — works natively on all platforms including mobile
+                    Object.assign(ifaceSelectElement.style, {
+                        position: 'absolute',
+                        top: '0',
+                        left: '0',
+                        width: '100%',
+                        height: '100%',
+                        opacity: '0',
+                        cursor: 'pointer',
+                        zIndex: '2',
+                    });
+                    updateBlock.appendChild(ifaceSelectElement);
                     streamPill.appendChild(updateBlock);
                 }
 
@@ -395,10 +396,22 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             // No active stream: minimal pill with just pid status
             const pill = document.createElement('div');
             pill.className = 'stream-pill';
-            if (updateIfaceButton) {
+            if (updateIfaceButton && ifaceSelectElement) {
                 const updateBlock = document.createElement('div');
                 updateBlock.classList.add('update-iface', blockClass);
+                updateBlock.style.position = 'relative';
                 updateBlock.appendChild(updateIfaceButton);
+                Object.assign(ifaceSelectElement.style, {
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    opacity: '0',
+                    cursor: 'pointer',
+                    zIndex: '2',
+                });
+                updateBlock.appendChild(ifaceSelectElement);
                 pill.appendChild(updateBlock);
             }
             pill.appendChild(pidBlock);
@@ -406,9 +419,6 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         }
 
         services.appendChild(streamSection);
-        if (ifaceSelectElement) {
-            services.appendChild(ifaceSelectElement);
-        }
 
         // ── Dev tools section ──────────────────────────────────────────
         const toolsEntries: (HTMLElement | DocumentFragment)[] = [];
@@ -465,25 +475,18 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         | ((a: GoogDeviceDescriptor, b: GoogDeviceDescriptor) => number)
         | null {
         const sortBy = (localStorage && localStorage.getItem(DeviceTracker.SORT_KEY)) || 'default';
-        if (sortBy === 'active-first') {
-            return (a, b) => {
-                const aScore = a.state === DeviceState.DEVICE ? 0 : 1;
-                const bScore = b.state === DeviceState.DEVICE ? 0 : 1;
-                return aScore - bScore || a.udid.localeCompare(b.udid);
-            };
-        }
         if (sortBy === 'name-asc') {
             return (a, b) => {
-                const aName = `${a['ro.product.manufacturer']} ${a['ro.product.model']}`.toLowerCase();
-                const bName = `${b['ro.product.manufacturer']} ${b['ro.product.model']}`.toLowerCase();
-                return aName.localeCompare(bName) || a.udid.localeCompare(b.udid);
+                const aName = `${a['ro.product.manufacturer']}\x01${a['ro.product.model']}\x01${a.udid}`.toLowerCase();
+                const bName = `${b['ro.product.manufacturer']}\x01${b['ro.product.model']}\x01${b.udid}`.toLowerCase();
+                return aName.localeCompare(bName);
             };
         }
         if (sortBy === 'name-desc') {
             return (a, b) => {
-                const aName = `${a['ro.product.manufacturer']} ${a['ro.product.model']}`.toLowerCase();
-                const bName = `${b['ro.product.manufacturer']} ${b['ro.product.model']}`.toLowerCase();
-                return bName.localeCompare(aName) || a.udid.localeCompare(b.udid);
+                const aName = `${a['ro.product.manufacturer']}\x01${a['ro.product.model']}\x01${a.udid}`.toLowerCase();
+                const bName = `${b['ro.product.manufacturer']}\x01${b['ro.product.model']}\x01${b.udid}`.toLowerCase();
+                return bName.localeCompare(aName);
             };
         }
         return null;
@@ -510,7 +513,6 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         const currentSort = (localStorage && localStorage.getItem(DeviceTracker.SORT_KEY)) || 'default';
         const sortOptions: { value: string; label: string }[] = [
             { value: 'default', label: 'Default order' },
-            { value: 'active-first', label: 'Active first' },
             { value: 'name-asc', label: 'Name A→Z' },
             { value: 'name-desc', label: 'Name Z→A' },
         ];
