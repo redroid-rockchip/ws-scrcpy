@@ -204,7 +204,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 } else {
                     command = ControlCenterCommand.START_SERVER;
                     actionButton.title = 'Start server';
-                    actionButton.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
+                    actionButton.appendChild(SvgImage.create(SvgImage.Icon.POWER));
                 }
                 actionButton.setAttribute(Attribute.COMMAND, command);
             } else {
@@ -220,12 +220,12 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             pidBlock.appendChild(actionButton);
         }
 
-        // Net interface select (hidden in single-interface mode) + update-interfaces button
-        // The refresh button is extracted separately for the stream pill.
+        // Net interface select + update-interfaces button
+        // ifaceBlock starts hidden; update button toggles its visibility.
         let updateIfaceButton: HTMLButtonElement | null = null;
         const ifaceBlock = document.createElement('div');
+        ifaceBlock.classList.add('net_interface', blockClass, 'hidden');
         {
-            ifaceBlock.classList.add('net_interface', blockClass);
             const proxyInterfaceUrl = DeviceTracker.createUrl(this.params, device.udid).toString();
             const proxyInterfaceName = 'proxy';
             const localStorageKey = DeviceTracker.getLocalStorageKey(fullName);
@@ -262,7 +262,6 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             /// #else
             selectedInterfaceUrl = proxyInterfaceUrl;
             selectedInterfaceName = proxyInterfaceName;
-            ifaceBlock.classList.add('hidden');
             /// #endif
             if (isActive) {
                 const adbProxyOption = DeviceTracker.createInterfaceOption(proxyInterfaceName, proxyInterfaceUrl);
@@ -272,14 +271,17 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                     selectedInterfaceName = proxyInterfaceName;
                 }
                 selectElement.appendChild(adbProxyOption);
-                // Create the refresh button — will be placed in the stream pill
+                // Refresh button placed in the stream pill; clicking also toggles ifaceBlock
                 const btn = document.createElement('button');
                 btn.className = 'action-button update-interfaces-button active';
                 btn.title = 'Update interfaces';
                 btn.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
                 btn.setAttribute(Attribute.UDID, device.udid);
                 btn.setAttribute(Attribute.COMMAND, ControlCenterCommand.UPDATE_INTERFACES);
-                btn.onclick = this.onActionButtonClick;
+                btn.onclick = (e) => {
+                    this.onActionButtonClick(e);
+                    ifaceBlock.classList.toggle('hidden');
+                };
                 updateIfaceButton = btn;
             }
             selectElement.onchange = this.onInterfaceSelected;
@@ -462,11 +464,19 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 return aScore - bScore || a.udid.localeCompare(b.udid);
             };
         }
-        if (sortBy === 'serial-asc') {
-            return (a, b) => a.udid.localeCompare(b.udid);
+        if (sortBy === 'name-asc') {
+            return (a, b) => {
+                const aName = `${a['ro.product.manufacturer']} ${a['ro.product.model']}`.toLowerCase();
+                const bName = `${b['ro.product.manufacturer']} ${b['ro.product.model']}`.toLowerCase();
+                return aName.localeCompare(bName) || a.udid.localeCompare(b.udid);
+            };
         }
-        if (sortBy === 'serial-desc') {
-            return (a, b) => b.udid.localeCompare(a.udid);
+        if (sortBy === 'name-desc') {
+            return (a, b) => {
+                const aName = `${a['ro.product.manufacturer']} ${a['ro.product.model']}`.toLowerCase();
+                const bName = `${b['ro.product.manufacturer']} ${b['ro.product.model']}`.toLowerCase();
+                return bName.localeCompare(aName) || a.udid.localeCompare(b.udid);
+            };
         }
         return null;
     }
@@ -493,8 +503,8 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         const sortOptions: { value: string; label: string }[] = [
             { value: 'default', label: 'Default order' },
             { value: 'active-first', label: 'Active first' },
-            { value: 'serial-asc', label: 'Serial A→Z' },
-            { value: 'serial-desc', label: 'Serial Z→A' },
+            { value: 'name-asc', label: 'Name A→Z' },
+            { value: 'name-desc', label: 'Name Z→A' },
         ];
         sortOptions.forEach(({ value, label }) => {
             const option = document.createElement('option');
