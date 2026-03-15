@@ -20,6 +20,7 @@ import { Tool } from '../../client/Tool';
 export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never> {
     public static readonly ACTION = ACTION.GOOG_DEVICE_LIST;
     public static readonly CREATE_DIRECT_LINKS = true;
+    private static readonly SORT_KEY = 'device_list::sort_order';
     private static instancesByUrl: Map<string, DeviceTracker> = new Map();
     protected static tools: Set<Tool> = new Set();
     protected tableId = 'goog_device_list';
@@ -184,9 +185,9 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         const pidValue = '' + device['pid'];
         const hasPid = pidValue !== '-1';
 
-        // Server PID control (icon-only, tooltip shows PID)
+        // Build utility blocks (pid + iface) — appended after direct-stream
+        const pidBlock = document.createElement('div');
         {
-            const pidBlock = document.createElement('div');
             pidBlock.classList.add('server_pid', blockClass);
             const actionButton = document.createElement('button');
             actionButton.className = 'action-button kill-server-button';
@@ -217,12 +218,11 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 actionButton.appendChild(SvgImage.create(SvgImage.Icon.OFFLINE));
             }
             pidBlock.appendChild(actionButton);
-            streamSection.appendChild(pidBlock);
         }
 
         // Net interface (hidden in single-interface mode)
+        const ifaceBlock = document.createElement('div');
         {
-            const ifaceBlock = document.createElement('div');
             ifaceBlock.classList.add('net_interface', blockClass);
             const proxyInterfaceUrl = DeviceTracker.createUrl(this.params, device.udid).toString();
             const proxyInterfaceName = 'proxy';
@@ -281,14 +281,12 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             }
             selectElement.onchange = this.onInterfaceSelected;
             ifaceBlock.appendChild(selectElement);
-            streamSection.appendChild(ifaceBlock);
         }
 
         // Configure stream button
         const streamEntry = StreamClientScrcpy.createEntryForDeviceList(device, blockClass, fullName, this.params);
-        streamEntry && streamSection.appendChild(streamEntry);
 
-        // Player select + direct stream link (dropdown + accent button)
+        // Player select + direct stream link (first in DOM for mobile prominence)
         if (DeviceTracker.CREATE_DIRECT_LINKS && hasPid) {
             const players = StreamClientScrcpy.getPlayers();
             if (players.length) {
@@ -360,6 +358,11 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             }
         }
 
+        // Append utility items after the primary stream block
+        streamSection.appendChild(pidBlock);
+        streamSection.appendChild(ifaceBlock);
+        streamEntry && streamSection.appendChild(streamEntry);
+
         services.appendChild(streamSection);
 
         // ── Dev tools section (active devices only) ────────────────────
@@ -385,7 +388,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             restartButton.setAttribute(Attribute.COMMAND, ControlCenterCommand.RESTART_DEVICE);
             restartButton.onclick = this.onActionButtonClick;
             const restartLabel = document.createElement('span');
-            restartLabel.innerText = 'restart';
+            restartLabel.innerText = 'reboot';
             restartButton.appendChild(restartLabel);
             restartBlock.appendChild(restartButton);
             toolsEntries.push(restartBlock);
@@ -413,12 +416,72 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         }
     }
 
+    private getSortComparator():
+        | ((a: GoogDeviceDescriptor, b: GoogDeviceDescriptor) => number)
+        | null {
+        const sortBy = (localStorage && localStorage.getItem(DeviceTracker.SORT_KEY)) || 'default';
+        if (sortBy === 'active-first') {
+            return (a, b) => {
+                const aScore = a.state === DeviceState.DEVICE ? 0 : 1;
+                const bScore = b.state === DeviceState.DEVICE ? 0 : 1;
+                return aScore - bScore;
+            };
+        }
+        if (sortBy === 'name-asc') {
+            return (a, b) => {
+                const aName = `${a['ro.product.manufacturer']} ${a['ro.product.model']}`.toLowerCase();
+                const bName = `${b['ro.product.manufacturer']} ${b['ro.product.model']}`.toLowerCase();
+                return aName.localeCompare(bName);
+            };
+        }
+        if (sortBy === 'name-desc') {
+            return (a, b) => {
+                const aName = `${a['ro.product.manufacturer']} ${a['ro.product.model']}`.toLowerCase();
+                const bName = `${b['ro.product.manufacturer']} ${b['ro.product.model']}`.toLowerCase();
+                return bName.localeCompare(aName);
+            };
+        }
+        return null;
+    }
+
     protected buildDeviceTable(): void {
+        const comparator = this.getSortComparator();
+        if (comparator) {
+            this.descriptors.sort(comparator);
+        }
         super.buildDeviceTable();
         const nameEl = document.getElementById(`${this.elementId}_name`);
         if (!nameEl || nameEl.querySelector('.restart-adb-button')) {
             return;
         }
+
+        // Sort select
+        const sortSelect = document.createElement('select');
+        sortSelect.className = 'sort-select';
+        sortSelect.title = 'Sort devices';
+        const currentSort = (localStorage && localStorage.getItem(DeviceTracker.SORT_KEY)) || 'default';
+        const sortOptions: { value: string; label: string }[] = [
+            { value: 'default', label: 'Default order' },
+            { value: 'active-first', label: 'Active first' },
+            { value: 'name-asc', label: 'Name A→Z' },
+            { value: 'name-desc', label: 'Name Z→A' },
+        ];
+        sortOptions.forEach(({ value, label }) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.innerText = label;
+            option.selected = value === currentSort;
+            sortSelect.appendChild(option);
+        });
+        sortSelect.onchange = () => {
+            if (localStorage) {
+                localStorage.setItem(DeviceTracker.SORT_KEY, sortSelect.value);
+            }
+            this.buildDeviceTable();
+        };
+        nameEl.appendChild(sortSelect);
+
+        // Restart ADB button
         const button = document.createElement('button');
         button.className = 'action-button restart-adb-button active';
         button.title = 'Restart ADB (refresh all devices)';

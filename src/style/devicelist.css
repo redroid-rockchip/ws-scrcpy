@@ -118,6 +118,24 @@ body.list #device_list_menu {
     background: var(--action-btn-hover-bg);
 }
 
+/* Sort select in tracker header */
+#devices .tracker-name .sort-select {
+    padding: 5px 8px;
+    border: 1px solid var(--action-btn-border);
+    border-radius: 20px;
+    background: var(--action-btn-bg);
+    color: var(--text-color);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    height: 32px;
+}
+
 /* ── Device card ───────────────────────────────────────── */
 
 #devices .device-list div.device {
@@ -453,5 +471,32 @@ body.list #device_list_menu {
 @media (min-width: 700px) {
     #devices {
         padding: 16px 24px;
+    }
+}
+
+/* ── Mobile: stream section full-width stream block ─────── */
+
+@media (max-width: 520px) {
+    /* Stream block spans full width so it's always on its own row */
+    #devices .device-list div.device div.direct-stream {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Player name select expands to fill available space */
+    #devices .device-list div.device div.direct-stream select {
+        flex: 1;
+        max-width: none;
+    }
+
+    /* Stream link fills remaining width */
+    #devices .device-list div.device div.direct-stream .player-link {
+        flex: 1;
+        justify-content: center;
+    }
+
+    #devices .device-list div.device div.direct-stream .player-link a {
+        flex: 1;
+        justify-content: center;
     }
 }
