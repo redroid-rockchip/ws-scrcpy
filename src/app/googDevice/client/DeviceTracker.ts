@@ -456,7 +456,10 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         }
 
         // Sort select
+        const sortSelectId = `sort_${this.elementId}`;
         const sortSelect = document.createElement('select');
+        sortSelect.id = sortSelectId;
+        sortSelect.name = sortSelectId;
         sortSelect.className = 'sort-select';
         sortSelect.title = 'Sort devices';
         const currentSort = (localStorage && localStorage.getItem(DeviceTracker.SORT_KEY)) || 'default';
@@ -473,12 +476,15 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             option.selected = value === currentSort;
             sortSelect.appendChild(option);
         });
-        sortSelect.onchange = () => {
+        // Use change event listener; read value before buildDeviceTable() detaches the element
+        sortSelect.addEventListener('change', (e: Event) => {
+            const val = (e.currentTarget as HTMLSelectElement).value;
             if (localStorage) {
-                localStorage.setItem(DeviceTracker.SORT_KEY, sortSelect.value);
+                localStorage.setItem(DeviceTracker.SORT_KEY, val);
             }
-            this.buildDeviceTable();
-        };
+            // Defer DOM rebuild so the change event fully completes first
+            setTimeout(() => this.buildDeviceTable(), 0);
+        });
         nameEl.appendChild(sortSelect);
 
         // Restart ADB button
