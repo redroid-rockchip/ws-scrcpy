@@ -280,7 +280,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 const btn = document.createElement('button');
                 btn.className = 'action-button update-interfaces-button active';
                 btn.title = 'Update interfaces';
-                btn.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
+                btn.appendChild(SvgImage.create(SvgImage.Icon.MORE));
                 btn.setAttribute(Attribute.UDID, device.udid);
                 btn.setAttribute(Attribute.COMMAND, ControlCenterCommand.UPDATE_INTERFACES);
                 btn.onclick = (e) => {
