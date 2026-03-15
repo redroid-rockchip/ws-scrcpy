@@ -318,7 +318,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         services.appendChild(streamSection);
 
         // ── Dev tools section (active devices only) ────────────────────
-        const toolsEntries: Element[] = [];
+        const toolsEntries: (HTMLElement | DocumentFragment)[] = [];
         DeviceTracker.tools.forEach((tool) => {
             const entry = tool.createEntryForDeviceList(device, blockClass, this.params);
             if (entry) {
