@@ -10,6 +10,9 @@
     --action-btn-bg: hsl(0, 0%, 97%);
     --action-btn-border: hsl(0, 0%, 85%);
     --action-btn-hover-bg: hsl(218, 67%, 95%);
+    --stream-btn-bg: hsl(145, 63%, 42%);
+    --stream-btn-color: #fff;
+    --stream-btn-hover-bg: hsl(145, 55%, 36%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,6 +28,8 @@
         --action-btn-bg: hsl(0, 0%, 22%);
         --action-btn-border: hsl(0, 0%, 32%);
         --action-btn-hover-bg: hsl(218, 17%, 26%);
+        --stream-btn-bg: hsl(145, 50%, 36%);
+        --stream-btn-hover-bg: hsl(145, 45%, 30%);
     }
 }
 
@@ -192,14 +197,29 @@ body.list #device_list_menu {
     background-color: var(--device-active-accent);
 }
 
-/* ── Services / action row ─────────────────────────────── */
+/* ── Services container ────────────────────────────────── */
 
 #devices .device-list div.services {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 8px;
+}
+
+/* ── Services section (stream / tools rows) ────────────── */
+
+#devices .services-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
     align-items: center;
 }
+
+#devices .tools-section {
+    padding-top: 8px;
+    border-top: 1px solid var(--device-border-color);
+}
+
+/* ── desc-block base ───────────────────────────────────── */
 
 #devices .device-list div.desc-block {
     display: inline-flex;
@@ -210,7 +230,7 @@ body.list #device_list_menu {
     display: none;
 }
 
-/* Bordered blocks (stream, pid, net interface) */
+/* Bordered standalone blocks (stream, pid, net interface) */
 #devices .device-list div.desc-block.stream,
 #devices .device-list div.desc-block.server_pid,
 #devices .device-list div.desc-block.net_interface {
@@ -219,6 +239,27 @@ body.list #device_list_menu {
     overflow: hidden;
     background: var(--action-btn-bg);
     white-space: nowrap;
+}
+
+/* ── Pill / btn-group (tools section) ──────────────────── */
+
+#devices .btn-group {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--action-btn-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--action-btn-bg);
+}
+
+#devices .btn-group > .desc-block {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+#devices .btn-group > .desc-block + .desc-block {
+    border-left: 1px solid var(--action-btn-border);
 }
 
 /* ── Action buttons ────────────────────────────────────── */
@@ -271,12 +312,9 @@ body.list #device_list_menu {
     font-size: 0.82rem;
 }
 
-/* Restart device button */
+/* Restart device block (inside btn-group, inherits pill style) */
 #devices .device-list div.restart-device {
-    border: 1px solid var(--action-btn-border);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--action-btn-bg);
+    /* pill border handled by .btn-group */
 }
 
 /* ── Select (interface dropdown) ───────────────────────── */
@@ -292,6 +330,70 @@ body.list #device_list_menu {
     outline: none;
     -webkit-appearance: none;
     appearance: none;
+}
+
+/* ── Direct stream link (accent colored) ───────────────── */
+
+#devices .device-list div.device div.direct-stream a {
+    background: var(--stream-btn-bg);
+    color: var(--stream-btn-color);
+    border-color: transparent;
+    font-weight: 600;
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+#devices .device-list div.device div.direct-stream a:hover,
+#devices .device-list div.device div.direct-stream a:active {
+    background: var(--stream-btn-hover-bg);
+}
+
+/* ── Stream action button ──────────────────────────────── */
+
+#devices .device-list div.device div.desc-block.stream button.action-button {
+    color: var(--button-text-color);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+/* ── Regular device links (tools: shell, devtools, etc.) ── */
+
+#devices .device-list div.device a {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    min-height: 36px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    color: var(--link-color);
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+/* Links inside btn-group don't need their own border/bg */
+#devices .btn-group div.desc-block a {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+/* Links outside btn-group get individual pill style */
+#devices .stream-section div.desc-block a,
+#devices .device-list div.device > .services > a {
+    border: 1px solid var(--action-btn-border);
+    border-radius: 8px;
+    background: var(--action-btn-bg);
+}
+
+#devices .device-list div.device a:visited {
+    color: var(--link-color_visited);
 }
 
 /* ── Inactive devices ──────────────────────────────────── */
@@ -316,32 +418,7 @@ body.list #device_list_menu {
     color: var(--link-color_visited-light);
 }
 
-/* ── Stream link ───────────────────────────────────────── */
-
-#devices .device-list div.device div.desc-block.stream button.action-button {
-    color: var(--button-text-color);
-    font-size: 0.82rem;
-    font-weight: 600;
-}
-
-#devices .device-list div.device a {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 10px;
-    border: 1px solid var(--action-btn-border);
-    border-radius: 8px;
-    background: var(--action-btn-bg);
-    font-size: 0.8rem;
-    text-decoration: none;
-    color: var(--link-color);
-    white-space: nowrap;
-}
-
-#devices .device-list div.device a:visited {
-    color: var(--link-color_visited);
-}
-
-/* ── Responsive: wider screens get 2-col cards ─────────── */
+/* ── Responsive: wider screens ─────────────────────────── */
 
 @media (min-width: 700px) {
     #devices {
