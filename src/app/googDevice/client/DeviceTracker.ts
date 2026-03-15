@@ -204,7 +204,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 } else {
                     command = ControlCenterCommand.START_SERVER;
                     actionButton.title = 'Start server';
-                    actionButton.appendChild(SvgImage.create(SvgImage.Icon.POWER));
+                    actionButton.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
                 }
                 actionButton.setAttribute(Attribute.COMMAND, command);
             } else {
@@ -221,10 +221,9 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         }
 
         // Net interface select + update-interfaces button
-        // ifaceBlock starts hidden; update button toggles its visibility.
+        // Clicking the update button opens the native select picker directly.
         let updateIfaceButton: HTMLButtonElement | null = null;
-        const ifaceBlock = document.createElement('div');
-        ifaceBlock.classList.add('net_interface', blockClass, 'hidden');
+        let ifaceSelectElement: HTMLSelectElement | null = null;
         {
             const proxyInterfaceUrl = DeviceTracker.createUrl(this.params, device.udid).toString();
             const proxyInterfaceName = 'proxy';
@@ -237,6 +236,13 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 'name',
                 encodeURIComponent(`${DeviceTracker.AttributePrefixInterfaceSelectFor}${fullName}`),
             );
+            Object.assign(selectElement.style, {
+                position: 'absolute',
+                opacity: '0',
+                pointerEvents: 'none',
+                width: '1px',
+                height: '1px',
+            });
             /// #if SCRCPY_LISTENS_ON_ALL_INTERFACES
             device.interfaces.forEach((value) => {
                 const params = {
@@ -271,7 +277,6 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                     selectedInterfaceName = proxyInterfaceName;
                 }
                 selectElement.appendChild(adbProxyOption);
-                // Refresh button placed in the stream pill; clicking also toggles ifaceBlock
                 const btn = document.createElement('button');
                 btn.className = 'action-button update-interfaces-button active';
                 btn.title = 'Update interfaces';
@@ -280,12 +285,14 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 btn.setAttribute(Attribute.COMMAND, ControlCenterCommand.UPDATE_INTERFACES);
                 btn.onclick = (e) => {
                     this.onActionButtonClick(e);
-                    ifaceBlock.classList.toggle('hidden');
+                    if ('showPicker' in selectElement) {
+                        (selectElement as any).showPicker();
+                    }
                 };
                 updateIfaceButton = btn;
             }
             selectElement.onchange = this.onInterfaceSelected;
-            ifaceBlock.appendChild(selectElement);
+            ifaceSelectElement = selectElement;
         }
 
         // ── Stream pill: [Stream link][player▼][⚙ configure][🔄 update iface][✕ pid] ──
@@ -398,8 +405,10 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             streamSection.appendChild(pill);
         }
 
-        streamSection.appendChild(ifaceBlock);
         services.appendChild(streamSection);
+        if (ifaceSelectElement) {
+            services.appendChild(ifaceSelectElement);
+        }
 
         // ── Dev tools section ──────────────────────────────────────────
         const toolsEntries: (HTMLElement | DocumentFragment)[] = [];
@@ -423,7 +432,6 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             restartButton.setAttribute(Attribute.UDID, device.udid);
             restartButton.setAttribute(Attribute.COMMAND, ControlCenterCommand.RESTART_DEVICE);
             restartButton.onclick = this.onActionButtonClick;
-            restartButton.appendChild(SvgImage.create(SvgImage.Icon.POWER));
             const restartLabel = document.createElement('span');
             restartLabel.innerText = 'reboot';
             restartButton.appendChild(restartLabel);
@@ -488,7 +496,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         }
         super.buildDeviceTable();
         const nameEl = document.getElementById(`${this.elementId}_name`);
-        if (!nameEl || nameEl.querySelector('.restart-adb-button')) {
+        if (!nameEl) {
             return;
         }
 
@@ -521,18 +529,6 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             this.buildDeviceTable();
         });
         nameEl.appendChild(sortSelect);
-
-        // Restart ADB button
-        const button = document.createElement('button');
-        button.className = 'action-button restart-adb-button active';
-        button.title = 'Restart ADB (refresh all devices)';
-        button.setAttribute(Attribute.COMMAND, ControlCenterCommand.RESTART_ADB);
-        button.onclick = this.onActionButtonClick;
-        button.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
-        const label = document.createElement('span');
-        label.innerText = 'Restart ADB';
-        button.appendChild(label);
-        nameEl.appendChild(button);
     }
 
     protected getChannelCode(): string {

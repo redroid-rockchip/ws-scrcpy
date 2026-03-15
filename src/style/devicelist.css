@@ -90,34 +90,6 @@ body.list #device_list_menu {
     flex-wrap: wrap;
 }
 
-#devices .tracker-name .restart-adb-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border: 1px solid var(--action-btn-border);
-    border-radius: 20px;
-    background: var(--action-btn-bg);
-    color: var(--button-text-color);
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-}
-
-#devices .tracker-name .restart-adb-button svg {
-    width: 14px;
-    height: 14px;
-    fill: var(--button-text-color);
-}
-
-#devices .tracker-name .restart-adb-button:hover,
-#devices .tracker-name .restart-adb-button:active {
-    background: var(--action-btn-hover-bg);
-}
-
 /* Sort select in tracker header */
 #devices .tracker-name .sort-select {
     padding: 5px 8px;
