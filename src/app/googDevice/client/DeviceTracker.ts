@@ -202,7 +202,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                     actionButton.appendChild(SvgImage.create(SvgImage.Icon.CANCEL));
                     actionButton.onclick = (e: MouseEvent) => {
                         this.onActionButtonClick(e);
-                        const card = (e.currentTarget as HTMLElement).closest('.device');
+                        const card = actionButton.closest('.device');
                         if (card) {
                             const updateBlockEl = card.querySelector('.update-iface') as HTMLElement | null;
                             if (updateBlockEl) {

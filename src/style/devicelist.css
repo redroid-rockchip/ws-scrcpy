@@ -305,6 +305,22 @@ body.list #device_list_menu {
     /* pill border handled by .btn-group */
 }
 
+/* ── Tools section: unified hover (neutral, not red) ───────── */
+
+#devices .device-list .device.active .tools-section .action-button.active:hover,
+#devices .device-list .device.active .tools-section .action-button.active:active,
+#devices .device-list .device.active .tools-section .btn-group a:hover,
+#devices .device-list .device.active .tools-section .btn-group a:active {
+    color: var(--text-color);
+    background: var(--action-btn-hover-bg);
+    text-decoration: none;
+}
+
+#devices .device-list .device.active .tools-section .action-button.active:hover > svg > path,
+#devices .device-list .device.active .tools-section .action-button.active:active > svg > path {
+    fill: var(--text-color);
+}
+
 /* ── Select (interface dropdown) ───────────────────────── */
 
 #devices .device-list div.device select {
@@ -451,14 +467,14 @@ body.list #device_list_menu {
         padding: 16px 24px;
     }
 
-    #devices .device-list {
+    #devices .tracker-block {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
         gap: 0 16px;
         align-items: start;
     }
 
-    #devices .device-list .tracker-name {
+    #devices .tracker-block .tracker-name {
         grid-column: 1 / -1;
     }
 }

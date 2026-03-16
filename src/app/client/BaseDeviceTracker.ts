@@ -134,6 +134,7 @@ export abstract class BaseDeviceTracker<DD extends BaseDeviceDescriptor, TE exte
         if (!el) {
             el = document.createElement('div');
             el.id = this.elementId;
+            el.className = 'tracker-block';
             parent.appendChild(el);
             this.created = true;
         } else {
