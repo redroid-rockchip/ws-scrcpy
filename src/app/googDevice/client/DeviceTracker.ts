@@ -191,6 +191,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             pidBlock.classList.add('server_pid', blockClass);
             const actionButton = document.createElement('button');
             actionButton.className = 'action-button kill-server-button';
+            actionButton.onclick = this.onActionButtonClick;
             actionButton.setAttribute(Attribute.UDID, device.udid);
             actionButton.setAttribute(Attribute.PID, pidValue);
             let command: string;
@@ -200,21 +201,10 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                     command = ControlCenterCommand.KILL_SERVER;
                     actionButton.title = `Kill server (PID ${pidValue})`;
                     actionButton.appendChild(SvgImage.create(SvgImage.Icon.CANCEL));
-                    actionButton.onclick = (e: MouseEvent) => {
-                        this.onActionButtonClick(e);
-                        const card = actionButton.closest('.device');
-                        if (card) {
-                            const updateBlockEl = card.querySelector('.update-iface') as HTMLElement | null;
-                            if (updateBlockEl) {
-                                updateBlockEl.style.display = 'none';
-                            }
-                        }
-                    };
                 } else {
                     command = ControlCenterCommand.START_SERVER;
                     actionButton.title = 'Start server';
                     actionButton.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
-                    actionButton.onclick = this.onActionButtonClick;
                 }
                 actionButton.setAttribute(Attribute.COMMAND, command);
             } else {
@@ -406,24 +396,6 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             // No active stream: minimal pill with just pid status
             const pill = document.createElement('div');
             pill.className = 'stream-pill';
-            if (updateIfaceButton && ifaceSelectElement) {
-                const updateBlock = document.createElement('div');
-                updateBlock.classList.add('update-iface', blockClass);
-                updateBlock.style.position = 'relative';
-                updateBlock.appendChild(updateIfaceButton);
-                Object.assign(ifaceSelectElement.style, {
-                    position: 'absolute',
-                    top: '0',
-                    left: '0',
-                    width: '100%',
-                    height: '100%',
-                    opacity: '0',
-                    cursor: 'pointer',
-                    zIndex: '2',
-                });
-                updateBlock.appendChild(ifaceSelectElement);
-                pill.appendChild(updateBlock);
-            }
             pill.appendChild(pidBlock);
             streamSection.appendChild(pill);
         }

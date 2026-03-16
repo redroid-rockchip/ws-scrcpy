@@ -37,7 +37,7 @@
 
 body.list {
     height: auto;
-    width: auto;
+    width: 100%;
     overflow: auto;
 }
 
@@ -273,13 +273,15 @@ body.list #device_list_menu {
 }
 
 #devices .device-list .device.active div.desc-block .action-button.active:hover,
-#devices .device-list .device.active div.desc-block .action-button.active:active {
+#devices .device-list .device.active div.desc-block .action-button.active:active,
+#devices .device-list .device.active div.update-iface:hover .action-button {
     color: var(--kill-button-hover-color);
     background: var(--action-btn-hover-bg);
 }
 
 #devices .device-list .device.active div.desc-block button.action-button.active:hover > svg > path,
-#devices .device-list .device.active div.desc-block button.action-button.active:active > svg > path {
+#devices .device-list .device.active div.desc-block button.action-button.active:active > svg > path,
+#devices .device-list .device.active div.update-iface:hover .action-button > svg > path {
     fill: var(--kill-button-hover-color);
 }
 
@@ -307,17 +309,13 @@ body.list #device_list_menu {
 
 /* ── Tools section: unified hover (neutral, not red) ───────── */
 
-#devices .device-list .device.active .tools-section .action-button.active:hover,
-#devices .device-list .device.active .tools-section .action-button.active:active,
-#devices .device-list .device.active .tools-section .btn-group a:hover,
-#devices .device-list .device.active .tools-section .btn-group a:active {
+#devices .device-list .device.active .tools-section div.desc-block :is(a, .action-button.active):is(:hover, :active) {
     color: var(--text-color);
     background: var(--action-btn-hover-bg);
     text-decoration: none;
 }
 
-#devices .device-list .device.active .tools-section .action-button.active:hover > svg > path,
-#devices .device-list .device.active .tools-section .action-button.active:active > svg > path {
+#devices .device-list .device.active .tools-section div.desc-block .action-button.active:is(:hover, :active) > svg > path {
     fill: var(--text-color);
 }
 
