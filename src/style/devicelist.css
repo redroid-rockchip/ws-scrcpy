@@ -232,8 +232,9 @@ body.list #device_list_menu {
 /* ── Pill / btn-group (tools section) ──────────────────── */
 
 #devices .btn-group {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    width: 100%;
     border: 1px solid var(--action-btn-border);
     border-radius: 8px;
     overflow: hidden;
@@ -241,9 +242,11 @@ body.list #device_list_menu {
 }
 
 #devices .btn-group > .desc-block {
+    flex: 1;
     border: none;
     border-radius: 0;
     background: transparent;
+    justify-content: center;
 }
 
 #devices .btn-group > .desc-block + .desc-block {
@@ -256,6 +259,7 @@ body.list #device_list_menu {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
     min-height: 36px;
     min-width: 36px;
     padding: 0 10px;
@@ -425,6 +429,8 @@ body.list #device_list_menu {
 
 /* Links inside btn-group don't need their own border/bg */
 #devices .btn-group div.desc-block a {
+    width: 100%;
+    justify-content: center;
     border: none;
     border-radius: 0;
     background: transparent;
