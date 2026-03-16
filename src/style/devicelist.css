@@ -450,6 +450,17 @@ body.list #device_list_menu {
     #devices {
         padding: 16px 24px;
     }
+
+    #devices .device-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 0 16px;
+        align-items: start;
+    }
+
+    #devices .device-list .tracker-name {
+        grid-column: 1 / -1;
+    }
 }
 
 /* ── Mobile: stream pill full-width ─────────────────────── */

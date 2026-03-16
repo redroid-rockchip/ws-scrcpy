@@ -196,15 +196,25 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             let command: string;
             if (isActive) {
                 actionButton.classList.add('active');
-                actionButton.onclick = this.onActionButtonClick;
                 if (hasPid) {
                     command = ControlCenterCommand.KILL_SERVER;
                     actionButton.title = `Kill server (PID ${pidValue})`;
                     actionButton.appendChild(SvgImage.create(SvgImage.Icon.CANCEL));
+                    actionButton.onclick = (e: MouseEvent) => {
+                        this.onActionButtonClick(e);
+                        const card = (e.currentTarget as HTMLElement).closest('.device');
+                        if (card) {
+                            const updateBlockEl = card.querySelector('.update-iface') as HTMLElement | null;
+                            if (updateBlockEl) {
+                                updateBlockEl.style.display = 'none';
+                            }
+                        }
+                    };
                 } else {
                     command = ControlCenterCommand.START_SERVER;
                     actionButton.title = 'Start server';
                     actionButton.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
+                    actionButton.onclick = this.onActionButtonClick;
                 }
                 actionButton.setAttribute(Attribute.COMMAND, command);
             } else {
@@ -436,9 +446,10 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         if (isActive) {
             const restartBlock = document.createElement('div');
             restartBlock.classList.add('restart-device', blockClass);
-            const restartButton = document.createElement('button');
+            const restartButton = document.createElement('a');
             restartButton.className = 'action-button restart-device-button active';
             restartButton.title = 'Restart device';
+            restartButton.href = 'javascript:void(0)';
             restartButton.setAttribute(Attribute.UDID, device.udid);
             restartButton.setAttribute(Attribute.COMMAND, ControlCenterCommand.RESTART_DEVICE);
             restartButton.onclick = this.onActionButtonClick;
