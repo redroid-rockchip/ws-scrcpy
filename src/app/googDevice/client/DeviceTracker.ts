@@ -196,15 +196,25 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
             let command: string;
             if (isActive) {
                 actionButton.classList.add('active');
-                actionButton.onclick = this.onActionButtonClick;
                 if (hasPid) {
                     command = ControlCenterCommand.KILL_SERVER;
                     actionButton.title = `Kill server (PID ${pidValue})`;
                     actionButton.appendChild(SvgImage.create(SvgImage.Icon.CANCEL));
+                    actionButton.onclick = (e: MouseEvent) => {
+                        this.onActionButtonClick(e);
+                        const card = (e.currentTarget as HTMLElement).closest('.device');
+                        if (card) {
+                            const updateBlockEl = card.querySelector('.update-iface') as HTMLElement | null;
+                            if (updateBlockEl) {
+                                updateBlockEl.style.display = 'none';
+                            }
+                        }
+                    };
                 } else {
                     command = ControlCenterCommand.START_SERVER;
                     actionButton.title = 'Start server';
                     actionButton.appendChild(SvgImage.create(SvgImage.Icon.REFRESH));
+                    actionButton.onclick = this.onActionButtonClick;
                 }
                 actionButton.setAttribute(Attribute.COMMAND, command);
             } else {
