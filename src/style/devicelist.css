@@ -305,18 +305,6 @@ body.list #device_list_menu {
     /* pill border handled by .btn-group */
 }
 
-/* Reboot button uses neutral hover, not destructive kill color */
-#devices .device-list .device.active div.desc-block button.action-button.restart-device-button:hover,
-#devices .device-list .device.active div.desc-block button.action-button.restart-device-button:active {
-    color: var(--text-color);
-    background: var(--action-btn-hover-bg);
-}
-
-#devices .device-list .device.active div.desc-block button.action-button.restart-device-button:hover > svg > path,
-#devices .device-list .device.active div.desc-block button.action-button.restart-device-button:active > svg > path {
-    fill: var(--text-color);
-}
-
 /* ── Select (interface dropdown) ───────────────────────── */
 
 #devices .device-list div.device select {
@@ -461,18 +449,6 @@ body.list #device_list_menu {
 @media (min-width: 700px) {
     #devices {
         padding: 16px 24px;
-    }
-
-    #devices .device-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-        gap: 0 16px;
-        align-items: start;
-    }
-
-    /* Tracker name header spans all columns */
-    #devices .device-list .tracker-name {
-        grid-column: 1 / -1;
     }
 }
 
