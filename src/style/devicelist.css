@@ -345,9 +345,10 @@ body.list #device_list_menu {
     border-radius: 8px;
     overflow: hidden;
     background: var(--action-btn-bg);
-    display: inline-flex;
+    display: flex;
     align-items: center;
     white-space: nowrap;
+    width: 100%;
 }
 
 /* Divider between adjacent pill children */
@@ -364,13 +365,16 @@ body.list #device_list_menu {
 
 /* Stream link (filled by updateLink) */
 #devices .device-list div.device div.stream-pill .player-link {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    flex: 1;
 }
 
 #devices .device-list div.device div.stream-pill .player-link a {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
+    flex: 1;
     padding: 0 14px;
     height: 36px;
     background: var(--stream-btn-bg);
@@ -483,26 +487,9 @@ body.list #device_list_menu {
     }
 }
 
-/* ── Mobile: stream pill full-width ─────────────────────── */
+/* ── Mobile: player select expands ──────────────────────── */
 
 @media (max-width: 520px) {
-    /* Stream pill spans full width so it's always on its own row */
-    #devices .device-list div.device div.stream-pill {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* Stream link fills remaining space */
-    #devices .device-list div.device div.stream-pill .player-link {
-        flex: 1;
-        justify-content: center;
-    }
-
-    #devices .device-list div.device div.stream-pill .player-link a {
-        flex: 1;
-        justify-content: center;
-    }
-
     /* Player select expands on mobile */
     #devices .device-list div.device div.stream-pill .pill-player-select {
         flex: 1;
