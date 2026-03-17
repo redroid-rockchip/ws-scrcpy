@@ -193,6 +193,7 @@ body.list #device_list_menu {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: fit-content;
 }
 
 /* ── Services section (stream / tools rows) ────────────── */
