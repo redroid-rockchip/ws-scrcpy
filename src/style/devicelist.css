@@ -345,10 +345,8 @@ body.list #device_list_menu {
     border-radius: 8px;
     overflow: hidden;
     background: var(--action-btn-bg);
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    white-space: nowrap;
-    width: 100%;
 }
 
 /* Divider between adjacent pill children */
@@ -361,20 +359,21 @@ body.list #device_list_menu {
     border: none;
     border-radius: 0;
     background: transparent;
+    flex: 0 0 36px;
 }
 
 /* Stream link (filled by updateLink) */
 #devices .device-list div.device div.stream-pill .player-link {
     display: flex;
     align-items: center;
-    flex: 1;
+    flex: 0 0 auto;
 }
 
 #devices .device-list div.device div.stream-pill .player-link a {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 1;
+    width: 100px;
     padding: 0 14px;
     height: 36px;
     background: var(--stream-btn-bg);
@@ -406,7 +405,8 @@ body.list #device_list_menu {
     outline: none;
     -webkit-appearance: none;
     appearance: none;
-    max-width: 120px;
+    flex: 0 0 auto;
+    width: 100px;
 }
 
 /* ── Stream action button ──────────────────────────────── */
@@ -487,12 +487,3 @@ body.list #device_list_menu {
     }
 }
 
-/* ── Mobile: player select expands ──────────────────────── */
-
-@media (max-width: 520px) {
-    /* Player select expands on mobile */
-    #devices .device-list div.device div.stream-pill .pill-player-select {
-        flex: 1;
-        max-width: none;
-    }
-}
