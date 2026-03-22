@@ -16,7 +16,6 @@ import { HostItem } from '../../../types/Configuration';
 import { ChannelCode } from '../../../common/ChannelCode';
 import { Tool } from '../../client/Tool';
 
-
 export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never> {
     public static readonly ACTION = ACTION.GOOG_DEVICE_LIST;
     public static readonly CREATE_DIRECT_LINKS = true;
@@ -154,7 +153,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         return optionElement;
     }
 
-protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
+    protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         let selectedInterfaceUrl = '';
         let selectedInterfaceName = '';
         const blockClass = 'desc-block';
@@ -284,7 +283,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         }
 
         // ── Stream pill: [Stream link][player▼][⚙ configure][🔄 update iface][✕ pid] ──
-        if (DeviceTracker.CREATE_DIRECT_LINKS && hasPid) {
+        if (DeviceTracker.CREATE_DIRECT_LINKS && hasPid && isActive) {
             const players = StreamClientScrcpy.getPlayers();
             if (players.length) {
                 const escapedUdid = Util.escapeUdid(device.udid);
@@ -454,9 +453,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         }
     }
 
-    private getSortComparator():
-        | ((a: GoogDeviceDescriptor, b: GoogDeviceDescriptor) => number)
-        | null {
+    private getSortComparator(): ((a: GoogDeviceDescriptor, b: GoogDeviceDescriptor) => number) | null {
         const sortBy = (localStorage && localStorage.getItem(DeviceTracker.SORT_KEY)) || 'default';
         if (sortBy === 'name-asc') {
             return (a, b) => {
