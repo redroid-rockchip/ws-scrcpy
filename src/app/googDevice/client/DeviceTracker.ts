@@ -16,7 +16,6 @@ import { HostItem } from '../../../types/Configuration';
 import { ChannelCode } from '../../../common/ChannelCode';
 import { Tool } from '../../client/Tool';
 
-
 export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never> {
     public static readonly ACTION = ACTION.GOOG_DEVICE_LIST;
     public static readonly CREATE_DIRECT_LINKS = true;
@@ -154,7 +153,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         return optionElement;
     }
 
-protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
+    protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         let selectedInterfaceUrl = '';
         let selectedInterfaceName = '';
         const blockClass = 'desc-block';
@@ -393,10 +392,16 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
                 streamSection.appendChild(streamPill);
             }
         } else {
-            // No active stream: minimal pill with just pid status
+            // No active stream: minimal pill with pid status + offline label
             const pill = document.createElement('div');
             pill.className = 'stream-pill';
             pill.appendChild(pidBlock);
+            if (!isActive) {
+                const label = document.createElement('span');
+                label.className = 'stream-offline-label';
+                label.textContent = 'Offline';
+                pill.appendChild(label);
+            }
             streamSection.appendChild(pill);
         }
 
@@ -454,9 +459,7 @@ protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
         }
     }
 
-    private getSortComparator():
-        | ((a: GoogDeviceDescriptor, b: GoogDeviceDescriptor) => number)
-        | null {
+    private getSortComparator(): ((a: GoogDeviceDescriptor, b: GoogDeviceDescriptor) => number) | null {
         const sortBy = (localStorage && localStorage.getItem(DeviceTracker.SORT_KEY)) || 'default';
         if (sortBy === 'name-asc') {
             return (a, b) => {
