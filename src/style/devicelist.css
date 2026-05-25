@@ -53,7 +53,8 @@ body.stream #devices {
     opacity: 0.92;
     position: absolute;
     top: 0;
-    left: 0;
+    right: 0;
+    left: auto;
     z-index: 3;
 }
 

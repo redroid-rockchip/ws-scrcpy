@@ -82,6 +82,12 @@ export class GoogToolBox extends ToolBox {
             elements.push(screenshot);
         }
 
+        const refresh = new ToolBoxButton('Refresh stream', SvgImage.Icon.REFRESH);
+        refresh.addEventListener('click', () => {
+            window.location.reload();
+        });
+        elements.push(refresh);
+
         const keyboard = new ToolBoxCheckbox(
             'Capture keyboard',
             SvgImage.Icon.KEYBOARD,

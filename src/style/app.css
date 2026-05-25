@@ -103,7 +103,7 @@ body.stream {
 
 .device-view {
     z-index: 1;
-    float: right;
+    float: left;
     display: inline-block;
 }
 
@@ -118,7 +118,7 @@ body.stream {
 }
 
 .video {
-    float: right;
+    float: left;
     max-height: 100%;
     max-width: 100%;
     background-color: #000000;
@@ -126,7 +126,7 @@ body.stream {
 
 
 .control-buttons-list {
-    float: right;
+    float: left;
     width: 3.715rem;
     background-color: var(--control-buttons-bg-color);
 }
